@@ -155,10 +155,10 @@ Postgres runs as a sidecar in both environments, so neither image needs a local 
    (login, signup,     │                                  │
     consent)           │  Devise      users, sessions     │
                        │  Doorkeeper  /oauth/*            │
-                       │  Admin API   /admin/v1/*         │
+                       │  Admin API   /api/v1/*           │
                        └───┬──────────────────────┬───────┘
                            │                      │
-   POST /oauth/introspect  │                      │  /admin/v1/*
+   POST /oauth/introspect  │                      │  /api/v1/*
    POST /oauth/token       │                      │
    POST /oauth/revoke      │                      │
               ┌────────────┴──────────┐  ┌────────┴─────────┐
@@ -309,7 +309,7 @@ end
 validates :first_name, :last_name, presence: true
 ```
 
-Two consequences you are choosing: registration must ask for both names, and `POST /admin/v1/users` must supply both. If you want the columns `NOT NULL` but the names optional, use `default: ""` instead of presence validations — that is Devise's own convention for `email`. The trade is that `""` becomes the sentinel for "missing", so `ORDER BY last_name` sorts the nameless to the top. Adding this to a populated table would also need a backfill between the `add_column` and the constraint; Auth Service has no users yet, so one `change` block is fine.
+Two consequences you are choosing: registration must ask for both names, and `POST /api/v1/users` must supply both. If you want the columns `NOT NULL` but the names optional, use `default: ""` instead of presence validations — that is Devise's own convention for `email`. The trade is that `""` becomes the sentinel for "missing", so `ORDER BY last_name` sorts the nameless to the top. Adding this to a populated table would also need a backfill between the `add_column` and the constraint; Auth Service has no users yet, so one `change` block is fine.
 
 **Devise silently drops these params until you permit them.** No error, no warning — the form just saves nothing, and the bug shows up as "the profile page is broken":
 
@@ -401,7 +401,7 @@ Non-negotiable, because "still authorized" is a core requirement:
 - `POST /oauth/revoke` — a client drops its own token (RFC 7009). Doorkeeper ships this.
 - **Password change revokes all of the user's tokens.** Doorkeeper does not do this automatically; wire it in the `User` model.
 - **Destroying a user revokes their tokens too** — see the introspection hook above. Same mechanism, `dependent: :destroy`.
-- `DELETE /admin/v1/users/:id/tokens` — kill every token for a user. Backs the admin app's "sign out everywhere".
+- `DELETE /api/v1/users/:id/tokens` — kill every token for a user. Backs the admin app's "sign out everywhere".
 
 Refresh tokens rotate on every use. Doorkeeper does the rotation itself when the generated `previous_refresh_token` column is present: each refresh issues a new token and revokes the one presented, and reusing a spent refresh token raises `InvalidGrantReuse` (a `400 invalid_grant`). It does **not** revoke the rest of the chain — the record links back one step, and nothing walks descendants on reuse. If reuse should kill the whole family, that is custom work: catch `InvalidGrantReuse` and revoke every token descending from the reused value through `previous_refresh_token`. Build it in Phase 1 alongside password-change revocation, or drop the stronger guarantee.
 
@@ -414,15 +414,15 @@ Refresh tokens rotate on every use. Doorkeeper does the rotation itself when the
 | `POST /oauth/token` | client secret | `authorization_code`, `refresh_token`, `client_credentials` |
 | `POST /oauth/introspect` | client secret | validate a token (RFC 7662) |
 | `POST /oauth/revoke` | client secret | revoke a token (RFC 7009) |
-| `GET /admin/v1/users` | `admin:users` scope | list / read users |
-| `POST /admin/v1/users` | `admin:users` scope | create a user |
-| `PATCH /admin/v1/users/:id` | `admin:users` scope | update role, profile, password |
-| `DELETE /admin/v1/users/:id/tokens` | `admin:users` scope | global sign-out |
-| `GET /admin/v1/applications` | `admin:apps` scope | list OAuth apps |
-| `POST /admin/v1/applications` | `admin:apps` scope | register an app, return the secret once |
-| `DELETE /admin/v1/applications/:id` | `admin:apps` scope | revoke an app |
+| `GET /api/v1/users` | `admin:users` scope | list / read users |
+| `POST /api/v1/users` | `admin:users` scope | create a user |
+| `PATCH /api/v1/users/:id` | `admin:users` scope | update role, profile, password |
+| `DELETE /api/v1/users/:id/tokens` | `admin:users` scope | global sign-out |
+| `GET /api/v1/applications` | `admin:apps` scope | list OAuth apps |
+| `POST /api/v1/applications` | `admin:apps` scope | register an app, return the secret once |
+| `DELETE /api/v1/applications/:id` | `admin:apps` scope | revoke an app |
 
-`/admin/v1/*` is a normal Doorkeeper-protected controller. The admin app is itself a Doorkeeper application holding `admin:users admin:apps`, obtained via `client_credentials`. No second token scheme, no API keys.
+`/api/v1/*` is a normal Doorkeeper-protected controller. The admin app is itself a Doorkeeper application holding `admin:users admin:apps`, obtained via `client_credentials`. No second token scheme, no API keys.
 
 **Bootstrap problem:** the first admin app can't be created through the admin API. Seed it.
 
@@ -463,7 +463,7 @@ PKCE stays on even though every client is confidential: authorization codes trav
 
 - **Phase 0** — `rails new`, Postgres, Devise (modules above), Doorkeeper with `authorization_code` + PKCE and `client_credentials`. Login + consent screens.
 - **Phase 1** — the proof phase. Two initializer overrides (`custom_introspection_response`, `allow_token_introspection`), role column, password-change and user-destroy revocation, refresh-token reuse detection if the whole-chain guarantee stays, and a second real app validating a real token end to end. **Nothing else is worth building until this works.**
-- **Phase 2** — `/admin/v1`: users, applications, global sign-out, admin app bootstrap seed.
+- **Phase 2** — `/api/v1`: users, applications, global sign-out, admin app bootstrap seed.
 - **Phase 3** — audit log of every grant, revocation, and role change, written in Phase 1's schema. Plus the admin app's audit view.
 - **Phase 4** — MFA, `doorkeeper-openid_connect` if an external consumer appears, scopes if per-app limits become real.
 
