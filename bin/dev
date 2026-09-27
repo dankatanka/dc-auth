@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+# -p 3000: foreman assigns PORT=5000 to the web process by default, which puma.rb
+# would silently pick up. Keep the Rails default instead.
+exec "bundle", "exec", "foreman", "start", "-f", "Procfile.dev", "-p", "3000", *ARGV

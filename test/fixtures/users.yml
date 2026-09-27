@@ -1,0 +1,7 @@
+ada:
+  email: ada@example.com
+  encrypted_password: ""
+  first_name: Ada
+  last_name: Lovelace
+  role: staff
+  confirmed_at: <%= Time.current %>

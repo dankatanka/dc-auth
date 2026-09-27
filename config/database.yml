@@ -1,0 +1,19 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: <%= ENV["DB_HOST"] %>
+  username: <%= ENV.fetch("PG_USER", "postgres") %>
+  password: <%= ENV["PG_PASSWORD"] %>
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: dc-auth-development
+
+test:
+  <<: *default
+  database: dc-auth-test
+
+production:
+  <<: *default
+  database: dc-auth-production

@@ -1,0 +1,32 @@
+// For format details, see https://containers.dev/implementors/json_reference/.
+// For config options, see the README at: https://github.com/devcontainers/templates/tree/main/src/ruby
+{
+  "name": "dc-auth",
+  "dockerComposeFile": "compose.yaml",
+  "service": "rails-app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    // bin/vite dev needs Node; the production image does not.
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/rails/devcontainer/features/postgres-client": {}
+  },
+
+  // Read by the default anchor in config/database.yml. Unset locally, where the
+  // pg gem uses the domain socket.
+  "containerEnv": {
+    "DB_HOST": "postgres"
+  },
+
+  // 3000 Rails, 3036 Vite (HMR), 5432 Postgres.
+  "forwardPorts": [3000, 3036, 5432],
+
+  // "customizations": {},
+
+  // Commented because there is nothing to switch to, not because root is wanted.
+  // "remoteUser": "root",
+
+  // bin/setup does not install node_modules.
+  "postCreateCommand": "bin/setup --skip-server && npm install -g yarn@1.22.22 && yarn install --frozen-lockfile"
+}

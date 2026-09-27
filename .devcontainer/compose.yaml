@@ -1,0 +1,26 @@
+name: "dc-auth"
+
+services:
+  rails-app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../../dc-auth:/workspaces/dc-auth:cached
+    command: sleep infinity
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+volumes:
+  postgres-data:
