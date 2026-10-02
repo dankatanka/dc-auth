@@ -13,8 +13,8 @@ class UserTest < ActiveSupport::TestCase
   test "role enum reads and stores its own string value" do
     ada = users(:ada)
 
-    assert_equal "staff", ada.role
-    assert_predicate ada, :staff?
+    assert_equal "administrator", ada.role
+    assert_predicate ada, :administrator?
   end
 
   test "changing the password revokes every access token and access grant" do

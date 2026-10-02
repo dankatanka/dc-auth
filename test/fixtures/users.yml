@@ -3,5 +3,5 @@ ada:
   encrypted_password: ""
   first_name: Ada
   last_name: Lovelace
-  role: staff
+  role: administrator
   confirmed_at: <%= Time.current %>

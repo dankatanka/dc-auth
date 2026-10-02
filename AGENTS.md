@@ -17,6 +17,8 @@ behavior, update the doc in the same change. Full rationale:
 ## Before you finish
 
 - Scan your added `#` lines. Each is one line of *why*, or nothing.
+- Test helpers are public and at the top of the test file; no `private`. Tests
+  live under `test/controllers`, one file per controller.
 - Behavior changed? Its `docs/` file is updated in this change.
 
 ## Where to look

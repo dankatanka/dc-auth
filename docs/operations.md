@@ -24,6 +24,26 @@ How to run the thing, and where its current edges are.
   `autoBuild: true` builds on demand and Rails serves `public/vite-dev` locally.
   Both paths work; only the first has HMR.
 
+## Seed data
+
+`db/seeds.rb` creates the `admin` OAuth application (docs/api.md), a
+`sample-client` application with `read:profile`, and two confirmed users —
+`administrator@example.com` and `customer@example.com`, one per role, password
+`password123`. It loads in every environment: Rails loads only this one
+file, there is no per-environment seed. `sample-client`'s redirect URI is
+`https://localhost:3001/oauth/callback` — Doorkeeper forces SSL outside
+development, so an `http://` one fails there.
+
+It uses `create!`, prints nothing, and is therefore **not idempotent**: a second
+`db:seed` against the same database raises on the duplicate rows rather than
+skipping them silently. That is deliberate — wrong or partial seed data fails
+loudly. `db:seed:replant` (what `bin/ci` runs) truncates first and works.
+Generated `uid`/`secret` values are not printed; read them from the console.
+
+The sample accounts are test credentials with a known password. Locally that is
+the point; pointed at a shared or production database it is a hole. `db:seed`
+should run only where those accounts are wanted.
+
 ## Frontend
 
 Vite owns everything: `app/frontend/entrypoints/application.js` and
@@ -177,5 +197,5 @@ than discovered later.
   mentioning importmap nonces. Harmless.
 - **The human-facing screens are stock gem views.** Login and registration are
   Devise's views; the consent screen is Doorkeeper's. Only the layout is ours.
-  The flows work end to end (`test/integration/token_validation_test.rb`), but
+  The flows work end to end (`test/controllers/token_validation_test.rb`), but
   there is no branding or error-message customization yet. See docs/roadmap.md.

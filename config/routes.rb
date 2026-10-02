@@ -7,6 +7,16 @@ Rails.application.routes.draw do
   end
 
   devise_for :users
+
+  namespace :api do
+    namespace :v1 do
+      resources :users, only: %i[index show create update] do
+        delete "tokens", on: :member, action: :destroy_tokens
+      end
+      resources :applications, only: %i[index create destroy]
+    end
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

@@ -4,13 +4,15 @@ Identity and access management for the platform: users, roles, and OAuth
 applications, behind one HTTP API. Client apps delegate authentication and
 authorization to it instead of each growing their own user table.
 
-> **Status: Phase 1 done — the proof phase.** The skeleton, database, and
+> **Status: Phase 2 done — the admin API.** The skeleton, database, and
 > dependency stack are in place and verified. The `User` model (roles, names,
 > claim whitelist) and the OAuth endpoints are wired — `authorization_code` +
 > PKCE, `client_credentials`, rotating refresh, and both introspection overrides.
 > Password change revokes every token, and a second registered app validates a
 > real user token end to end
-> (`test/integration/token_validation_test.rb`). The human-facing screens are the
+> (`test/controllers/token_validation_test.rb`). Phase 2 adds `/api/v1` —
+> users, OAuth applications, global sign-out, and the admin app seed — behind
+> `admin:users` / `admin:apps` bearer tokens. The human-facing screens are the
 > gems' stock views, not yet customized. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What this is

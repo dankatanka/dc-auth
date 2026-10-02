@@ -5,18 +5,10 @@ require "digest"
 class TokenValidationTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
-  setup do
-    @user = users(:ada)
-    @client = oauth_applications(:client)
-    @verifier = oauth_applications(:verifier)
-  end
-
-  test "a second app validates a real user token end to end" do
-    sign_in @user
-
+  def authorization_code
     verifier = SecureRandom.urlsafe_base64(64)
     challenge = Base64.urlsafe_encode64(Digest::SHA256.digest(verifier), padding: false)
-    authorize_params = {
+    params = {
       client_id: @client.uid,
       redirect_uri: @client.redirect_uri,
       response_type: "code",
@@ -26,14 +18,16 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
       code_challenge_method: "S256"
     }
 
-    get "/oauth/authorize", params: authorize_params
+    get "/oauth/authorize", params: params
     assert_response :success
 
-    post "/oauth/authorize", params: authorize_params
+    post "/oauth/authorize", params: params
     assert_response :redirect
-    code = Rack::Utils.parse_query(URI.parse(response.location).query)["code"]
-    assert code.present?
 
+    [ verifier, Rack::Utils.parse_query(URI.parse(response.location).query)["code"] ]
+  end
+
+  def access_token_for(verifier, code)
     post "/oauth/token", params: {
       grant_type: "authorization_code",
       code: code,
@@ -43,18 +37,38 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
       code_verifier: verifier
     }
     assert_response :success
-    token = JSON.parse(response.body)["access_token"]
-    assert token.present?
 
+    JSON.parse(response.body)["access_token"]
+  end
+
+  def introspect(token)
     post "/oauth/introspect", params: { token: token },
       headers: { "Authorization" => "Basic #{Base64.strict_encode64("#{@verifier.uid}:#{@verifier.secret}")}" }
     assert_response :success
 
-    claims = JSON.parse(response.body)
+    JSON.parse(response.body)
+  end
+
+  setup do
+    @user = users(:ada)
+    @client = oauth_applications(:client)
+    @verifier = oauth_applications(:verifier)
+  end
+
+  test "a second app validates a real user token end to end" do
+    sign_in @user
+
+    verifier, code = authorization_code
+    assert code.present?
+
+    token = access_token_for(verifier, code)
+    assert token.present?
+
+    claims = introspect(token)
     assert claims["active"], claims.inspect
     assert_equal @user.id.to_s, claims["sub"]
     assert_equal @user.email, claims["email"]
-    assert_equal "staff", claims["role"]
+    assert_equal "administrator", claims["role"]
     assert_equal true, claims["email_verified"]
   end
 end

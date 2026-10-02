@@ -25,7 +25,7 @@ Remaining Phase 0 work:
    and Doorkeeper's stock views, with the app's own layout. No view files were
    generated — there is nothing customized to maintain yet, and the
    authorization-code flow through them is exercised end to end by
-   `test/integration/token_validation_test.rb` (Phase 1).
+   `test/controllers/token_validation_test.rb` (Phase 1).
 
 The `User` modules are `database_authenticatable`, `registerable`,
 `recoverable`, `confirmable`, `trackable`, `lockable`, `validatable`.
@@ -48,7 +48,7 @@ clients. It is one config line.
 
 Password-change revocation (`User#revoke_tokens_on_password_change`), and **a
 second real app validating a real token end to end**
-(`test/integration/token_validation_test.rb`). User-destroy revocation was
+(`test/controllers/token_validation_test.rb`). User-destroy revocation was
 already in place: the foreign keys on `resource_owner_id` forced the
 `dependent: :destroy` associations with them (docs/revocation.md).
 
@@ -58,10 +58,15 @@ replayed refresh token fails that one request and nothing else
 
 This was the gate for any Doorkeeper upgrade (docs/stack.md).
 
-## Phase 2 — `/api/v1`
+## Phase 2 — `/api/v1` (done)
 
-Users, applications, global sign-out, and the admin app bootstrap seed
-(docs/api.md).
+Users (list, read, create, update), applications (list, register, revoke),
+global sign-out (`DELETE /api/v1/users/:id/tokens`), and the idempotent admin
+app seed. Scope-enforced through Doorkeeper's bearer token, no second auth
+scheme. Covered by the controller tests under `test/controllers/api/v1/`; shapes
+and parameters in docs/api.md.
+
+The admin app's audit view is not here — it is Phase 3.
 
 ## Phase 3 — audit log
 

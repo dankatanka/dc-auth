@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_213630) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_232702) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -238,14 +238,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_213630) do
     t.datetime "locked_at"
     t.string "first_name", null: false
     t.string "last_name", null: false
-    t.string "role", default: "user", null: false
+    t.string "role", default: "customer", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
-    t.check_constraint "role::text = ANY (ARRAY['user'::character varying, 'staff'::character varying, 'admin'::character varying]::text[])", name: "users_role_check"
+    t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'administrator'::character varying]::text[])", name: "users_role_check"
   end
 
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"

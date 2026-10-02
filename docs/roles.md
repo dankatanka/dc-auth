@@ -4,11 +4,11 @@ Roles are a single string column on `users`. No gem, no join tables, no policy
 DSL. Auth Service reports the name; each client app maps the name to its own
 rules.
 
-- Column `role`, `:string`, `NOT NULL`, `default: "user"`.
+- Column `role`, `:string`, `NOT NULL`, `default: "customer"`.
 - Values constrained in the database by a check constraint —
-  `role IN ('user', 'staff', 'admin')` — and in Ruby by a Rails `enum` with
+  `role IN ('customer', 'administrator')` — and in Ruby by a Rails `enum` with
   `validate: true`.
-- The three roles are `user`, `staff`, `admin`.
+- The two roles are `customer`, `administrator`.
 - `User.roles.keys` is the canonical role list — there is no separate `ROLES`
   constant to drift out of sync with the enum.
 
@@ -20,16 +20,16 @@ introspected. No waiting for token expiry.
 Rails 8 **removed** the keyword form. The positional form is required:
 `enum :role, ...` works, `enum role: [...]` raises.
 
-Map names to their own string values — `enum :role, { user: "user", staff:
-"staff", admin: "admin" }`, or the compact
-`%i[user staff admin].index_with(&:to_s)`. **Never use the plain array form on a
-string column.** Measured on Rails 8.1.3.1:
+Map names to their own string values — `enum :role, { customer: "customer",
+administrator: "administrator" }`, or the compact
+`%i[customer administrator].index_with(&:to_s)`. **Never use the plain array form
+on a string column.** Measured on Rails 8.1.3.1:
 
-| Definition (string column) | `role` reads | stored in DB | `admin?` |
+| Definition (string column) | `role` reads | stored in DB | `administrator?` |
 |---|---|---|---|
-| `enum :role, %i[user staff admin]` | `"admin"` | `"2"` | `false` |
-| `enum :role, { admin: "admin" }` | `"admin"` | `"admin"` | `true` |
-| `enum :role, %i[user staff admin].index_with(&:to_s)` | `"admin"` | `"admin"` | `true` |
+| `enum :role, %i[customer administrator]` | `"administrator"` | `"1"` | `false` |
+| `enum :role, { administrator: "administrator" }` | `"administrator"` | `"administrator"` | `true` |
+| `enum :role, %i[customer administrator].index_with(&:to_s)` | `"administrator"` | `"administrator"` | `true` |
 
 The array form maps names to the **integers** 0/1/2 and then serializes them
 into the string column. Ruby reads back `"admin"` so nothing looks wrong in the
@@ -42,15 +42,15 @@ controller as a 500. With it, the same assignment produces `valid? == false` and
 a normal form error. It also makes `role` **required** — `nil` fails validation
 too, which is what a value every authorization decision depends on deserves.
 
-**Integer backing is the alternative:** `enum :role, { user: 0, staff: 1, admin:
-2 }`, where the array form becomes correct. You pay in readability — the check
-constraint turns into `role IN (0, 1, 2)`, so a row in psql no longer says what
-it means, and the introspection claim needs the label rather than the stored
+**Integer backing is the alternative:** `enum :role, { customer: 0,
+administrator: 1 }`, where the array form becomes correct. You pay in
+readability — the check constraint turns into `role IN (0, 1)`, so a row in psql
+no longer says what it means, and the introspection claim needs the label rather than the stored
 value. String values keep the database self-describing and match what client
 apps receive.
 
-The enum also generates scopes — `User.user`, `User.staff`, `User.admin`.
-`User.user` reads badly in queries; pass `scopes: false` to keep them explicit.
+The enum also generates scopes — `User.customer`, `User.administrator` — which
+`scopes: false` suppresses to keep the model surface down.
 
 The check constraint is a plain constraint rather than a Postgres `ENUM` type on
 purpose: adding a role is then an ordinary migration, not an `ALTER TYPE` that
@@ -59,8 +59,9 @@ cannot be reversed.
 ## The contract
 
 Auth Service owns the **set of role names**. Each client app owns the **policy**
-for those names. A downstream app receives `role: "staff"` and decides for itself
-what a staff member may do there. It never asks Auth Service what a role means.
+for those names. A downstream app receives `role: "customer"` and decides for
+itself what a customer may do there. It never asks Auth Service what a role
+means.
 
 Consequences to accept:
 
@@ -71,7 +72,7 @@ Consequences to accept:
   full power; one app cannot be distinguished from another. That is the intended
   trade — one trust level for internal apps. Scopes are the upgrade path if it
   stops being true.
-- **No central policy view.** "What can a staff user do?" is answerable only by
+- **No central policy view.** "What can a customer do?" is answerable only by
   grepping the client apps. The audit log (docs/roadmap.md, Phase 3) is the
   mitigation.
 - **Fail closed, both directions.** Auth Service validates `role` against

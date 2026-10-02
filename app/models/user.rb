@@ -2,10 +2,7 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable, :recoverable, :confirmable,
          :trackable, :lockable, :validatable
 
-  # Positional form is required on Rails 8; the hash maps names to their own
-  # string values, which the plain array form does not — it serializes integers
-  # into the string column while still reading back the name.
-  enum :role, %i[user staff admin].index_with(&:to_s), validate: true, scopes: false
+  enum :role, %i[customer administrator].index_with(&:to_s), validate: true, scopes: false
 
   validates :first_name, :last_name, presence: true
 
@@ -14,7 +11,7 @@ class User < ApplicationRecord
   has_many :access_tokens, class_name: "Doorkeeper::AccessToken",
            foreign_key: :resource_owner_id, dependent: :destroy, inverse_of: false
 
-  after_update :revoke_tokens_on_password_change, if: :saved_change_to_encrypted_password?
+  after_update :revoke_tokens!, if: :saved_change_to_encrypted_password?
 
   def introspection_claims
     {
@@ -28,9 +25,7 @@ class User < ApplicationRecord
     }
   end
 
-  private
-
-  def revoke_tokens_on_password_change
+  def revoke_tokens!
     revoked_at = Time.current
     access_tokens.update_all(revoked_at: revoked_at)
     access_grants.update_all(revoked_at: revoked_at)

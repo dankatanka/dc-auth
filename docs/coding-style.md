@@ -52,6 +52,21 @@ constraint, a trap, a trade-off. Everything else is noise or documentation.
 # Set up the database connection.
 ```
 
+## Tests
+
+Test files follow the same shape as the source: one file per controller, plain
+Minitest, no framework.
+
+- **No `private`.** A test helper is public and sits at the top of the test
+  class, above `setup` and the tests, so the reader meets the vocabulary before
+  the cases. Minitest does not care about method visibility.
+- **Everything lives under `test/controllers`.** There is no `test/integration`.
+  Endpoint coverage is `ActionController::TestCase`, one file per controller.
+  `token_validation_test.rb` is the exception in class, not location: it proves
+  the whole OAuth chain, so it crosses routes and stays an
+  `ActionDispatch::IntegrationTest` — and it earns that because Phase 1 *is* "a
+  real app validates a real token end to end".
+
 ## The checklist, and what it is for
 
 `AGENTS.md` states the rules as a pre-finish checklist because that is the form

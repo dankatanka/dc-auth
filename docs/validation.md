@@ -14,7 +14,7 @@ token=<token under test>
     "email_verified": true,
     "first_name": "Ada",
     "last_name": "Lovelace",
-    "role": "staff",
+    "role": "administrator",
     "scope": "read:profile",
     "client_id": "...",
     "iat": 1234567000,

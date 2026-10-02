@@ -16,3 +16,11 @@ verifier:
   redirect_uri: urn:ietf:wg:oauth:2.0:oob
   scopes: read:profile
   confidential: true
+
+admin:
+  name: admin
+  uid: admin-uid
+  secret: admin-secret
+  redirect_uri: urn:ietf:wg:oauth:2.0:oob
+  scopes: "admin:users admin:apps"
+  confidential: true
