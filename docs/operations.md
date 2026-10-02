@@ -122,6 +122,45 @@ Do not install `tzdata` or Ruby by hand — the base image already has Ruby 4.0.
 Do not add a Kamal config; deployment orchestration is not this service's
 problem, and `kamal` is not in the Gemfile.
 
+### Compose
+
+`compose.yaml` at the repo root runs the production image against a
+`postgres:18` sidecar, for trying the built image without a dev container. Most
+of its environment is `${VAR:-default}` substitution, so it needs no `.env` —
+override from the shell (`POSTGRES_PASSWORD=... docker compose up`). `.env`
+stays a `bin/dev` concern. The app listens on `http://localhost:3000`.
+
+`db:prepare` runs on first boot and loads the schema and `db/seeds.rb`, so the
+sample accounts are there without an extra step. A second `db:seed` raises by
+design; use `docker compose exec app bin/rails db:seed:replant` to reset. The
+suite runs in the same image because the build only strips the `development`
+group:
+
+```
+docker compose run --rm -e RAILS_ENV=test app \
+  bash -lc 'bin/rails db:prepare && bin/rails test'
+```
+
+Notes:
+
+- It runs the **production** image (`Dockerfile`), so the app is behind Thruster
+  on `:80`, published as `3000`. The dev container's image is unrelated.
+- Environment is `${VAR:-default}` interpolation, not `env_file:`. Defaults are
+  local-only; override per run from the shell or with `docker compose run -e
+  KEY=value` (`POSTGRES_PASSWORD` feeds both `POSTGRES_PASSWORD` and the app's
+  `PG_PASSWORD`). A root `.env` is still read by Compose for interpolation —
+  point `--env-file` elsewhere if you want no file at all.
+- `SECRET_KEY_BASE` is a fixed zero placeholder, not interpolated: fine for a
+  local smoke test, wrong for anything reachable. Override it with `docker
+  compose run -e SECRET_KEY_BASE=...` before the port leaves the machine.
+- Postgres keeps its volume at `/var/lib/postgresql`, not the pre-18
+  `/var/lib/postgresql/data` — same reason as the dev container (PG18's
+  versioned `PGDATA` subdirectory).
+- One `dc-auth-production` database serves app, Solid Cache, and Solid Queue,
+  per the topology above; the `db:prepare` on first boot seeds it once.
+- `dc-auth-test` is disposable. The suite runs in the same image because the
+  build only excludes the `development` group, not `test`.
+
 ### Dev container
 
 `.devcontainer/` holds `devcontainer.json`, `Dockerfile`, and `compose.yaml`,
