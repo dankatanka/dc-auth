@@ -9,7 +9,9 @@ working on the next request, not at expiry.
 - **`POST /oauth/revoke`** — a client drops its own token (RFC 7009). Doorkeeper
   ships this.
 - **Password change revokes all of the user's tokens.** Doorkeeper does **not**
-  do this automatically; it must be wired in the `User` model.
+  do this automatically; the `User` model wires it in an `after_update` callback
+  that fires when `encrypted_password` changes, revoking every one of the user's
+  access tokens and pending access grants.
 - **Destroying a user revokes their tokens.** `dependent: :destroy` on the
   `Doorkeeper::AccessToken` and `Doorkeeper::AccessGrant` associations keyed by
   `resource_owner_id` (both on `User`). A foreign key on the same columns in
@@ -29,12 +31,16 @@ token and revokes the one presented, and reusing a spent refresh token raises
 
 It does **not** revoke the rest of the chain on reuse. The record links back one
 step, and nothing walks descendants when a spent token is presented again — the
-reuse only fails that one request.
+reuse only fails that one request, with a `400 invalid_grant`. The other tokens
+in the family stay live. **This is the decision, not a gap:** the whole-chain
+guarantee was considered and dropped (docs/decisions.md). A stolen refresh token
+that is replayed costs the attacker the one request it made; the legitimate
+client keeps its access token and its next refresh succeeds. Password change
+remains the blunt revocation lever when a session must die outright.
 
-If reuse should kill the whole token family, that is custom work: catch
-`InvalidGrantReuse` and revoke every token descending from the reused value
-through `previous_refresh_token`. Build it in Phase 1 alongside password-change
-revocation, or drop the stronger guarantee explicitly (docs/decisions.md).
+If the whole-chain guarantee is ever wanted, it is custom work: catch
+`InvalidGrantReuse` on `POST /oauth/token` and revoke every token descending
+from the reused value through `previous_refresh_token`.
 
 ## Why not cache the introspection answer
 

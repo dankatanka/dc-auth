@@ -8,6 +8,7 @@ not just the code.
 | User login | `authorization_code` redirect + PKCE | Passwords never touch client apps; no deprecated password grant |
 | Guaranteeing liveness | every request introspected, uncached | "still authorized" is a requirement, and a cache makes it a lie for its TTL |
 | Token format | opaque + introspection | Every app reaches Auth Service at request time; revocation must be immediate; roles must be live |
+| Refresh-token reuse | the replayed request fails (`400 invalid_grant`); the rest of the chain stays live | Whole-chain revocation is custom error-path code; replay is already caught per-request, and password change is the blunt kill switch when a session must die (docs/revocation.md) |
 | JWT / OIDC / JWKS | rejected | Buys nothing without an offline client; costs revocation and key rotation |
 | Browser clients / CORS | none | Every client is a backend — no SPA, no public client, no CORS config |
 | Roles | Rails `enum` on a string column, name sent in introspection | Client apps only need the name (docs/roles.md) |

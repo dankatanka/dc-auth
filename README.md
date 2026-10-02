@@ -4,12 +4,14 @@ Identity and access management for the platform: users, roles, and OAuth
 applications, behind one HTTP API. Client apps delegate authentication and
 authorization to it instead of each growing their own user table.
 
-> **Status: Phase 0, nearly done.** The app skeleton, database, and dependency
-> stack are in place and verified. The `User` model (roles, names, claim
-> whitelist) and the OAuth endpoints are wired — `authorization_code` + PKCE,
-> `client_credentials`, rotating refresh, and both introspection overrides. Only
-> the human-facing screens remain (login, registration, consent). See
-> [docs/roadmap.md](docs/roadmap.md).
+> **Status: Phase 1 done — the proof phase.** The skeleton, database, and
+> dependency stack are in place and verified. The `User` model (roles, names,
+> claim whitelist) and the OAuth endpoints are wired — `authorization_code` +
+> PKCE, `client_credentials`, rotating refresh, and both introspection overrides.
+> Password change revokes every token, and a second registered app validates a
+> real user token end to end
+> (`test/integration/token_validation_test.rb`). The human-facing screens are the
+> gems' stock views, not yet customized. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What this is
 
@@ -59,8 +61,9 @@ Versions, why each was chosen, and what was deliberately left out:
 | [api.md](docs/api.md) | Endpoint table, scopes, admin app bootstrap |
 | [operations.md](docs/operations.md) | Dev workflow, frontend, database topology, Dockerfile, known gaps |
 | [stack.md](docs/stack.md) | Versions, version policy, rejected dependencies |
-| [roadmap.md](docs/roadmap.md) | Phase 0 status and Phases 1–4 |
+| [roadmap.md](docs/roadmap.md) | Phase 0–1 status and Phases 2–4 |
 | [decisions.md](docs/decisions.md) | Locked decisions and non-goals |
+| [coding-style.md](docs/coding-style.md) | Code is not docs, and what a comment is for |
 
 ## Running it
 

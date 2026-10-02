@@ -175,7 +175,7 @@ than discovered later.
 
 - **`config/initializers/content_security_policy.rb`** has a commented example
   mentioning importmap nonces. Harmless.
-- **The human-facing screens do not exist yet.** The `User` model, the OAuth
-  endpoints, and both introspection overrides are wired, but login,
-  registration, and the consent screen are Phase 0 item 1, so no flow can be
-  exercised end to end. See docs/roadmap.md.
+- **The human-facing screens are stock gem views.** Login and registration are
+  Devise's views; the consent screen is Doorkeeper's. Only the layout is ours.
+  The flows work end to end (`test/integration/token_validation_test.rb`), but
+  there is no branding or error-message customization yet. See docs/roadmap.md.

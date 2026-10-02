@@ -14,6 +14,8 @@ class User < ApplicationRecord
   has_many :access_tokens, class_name: "Doorkeeper::AccessToken",
            foreign_key: :resource_owner_id, dependent: :destroy, inverse_of: false
 
+  after_update :revoke_tokens_on_password_change, if: :saved_change_to_encrypted_password?
+
   def introspection_claims
     {
       sub: id.to_s,
@@ -24,5 +26,13 @@ class User < ApplicationRecord
       updated_at: updated_at.to_i,
       role: role
     }
+  end
+
+  private
+
+  def revoke_tokens_on_password_change
+    revoked_at = Time.current
+    access_tokens.update_all(revoked_at: revoked_at)
+    access_grants.update_all(revoked_at: revoked_at)
   end
 end

@@ -3,7 +3,7 @@
 Phases are ordered by dependency, not by value. Phase 1 is the reason the project
 exists; everything after it is plumbing.
 
-## Phase 0 — skeleton and stack (in progress)
+## Phase 0 — skeleton and stack (done)
 
 **Done:** `rails new` with PostgreSQL, the dependency set in `Gemfile`, one
 database per environment shared with Solid Cache and Solid Queue (see
@@ -17,14 +17,15 @@ PKCE, `client_credentials`, rotating refresh tokens, a 15-minute TTL, and both
 introspection overrides from docs/validation.md. The applications and
 authorized-applications controllers are skipped (docs/decisions.md).
 
-**Not done:** item 4 below, and everything downstream of it. The OAuth and
-Devise routes are mounted, but the human-facing screens do not exist yet, so the
-flows cannot be exercised end to end.
+**Not done in this phase:** item 4 below, and everything downstream of it.
 
 Remaining Phase 0 work:
 
-1. Login, registration, and the consent screen. The consent screen is a plain
-   form POST — no websockets, no Turbo requirement.
+1. Login, registration, and the consent screen. These are served by Devise's
+   and Doorkeeper's stock views, with the app's own layout. No view files were
+   generated — there is nothing customized to maintain yet, and the
+   authorization-code flow through them is exercised end to end by
+   `test/integration/token_validation_test.rb` (Phase 1).
 
 The `User` modules are `database_authenticatable`, `registerable`,
 `recoverable`, `confirmable`, `trackable`, `lockable`, `validatable`.
@@ -43,16 +44,19 @@ PKCE stays on even though every client is confidential: authorization codes
 travel through the user's browser, and PKCE is the current best practice for all
 clients. It is one config line.
 
-## Phase 1 — the proof phase
+## Phase 1 — the proof phase (done)
 
-Password-change revocation, refresh-token reuse detection if the whole-chain
-guarantee stays (docs/revocation.md), and **a second real app validating a real
-token end to end**. User-destroy revocation is already in place: the foreign
-keys on `resource_owner_id` forced the `dependent: :destroy` associations with
-them (docs/revocation.md).
+Password-change revocation (`User#revoke_tokens_on_password_change`), and **a
+second real app validating a real token end to end**
+(`test/integration/token_validation_test.rb`). User-destroy revocation was
+already in place: the foreign keys on `resource_owner_id` forced the
+`dependent: :destroy` associations with them (docs/revocation.md).
 
-Nothing else is worth building until this works. It is also the gate for any
-Doorkeeper upgrade (docs/stack.md).
+The whole-chain refresh-token reuse guarantee was **dropped**, not built: a
+replayed refresh token fails that one request and nothing else
+(docs/revocation.md, docs/decisions.md).
+
+This was the gate for any Doorkeeper upgrade (docs/stack.md).
 
 ## Phase 2 — `/api/v1`
 

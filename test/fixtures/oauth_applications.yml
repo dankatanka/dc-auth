@@ -1,0 +1,18 @@
+_fixture:
+  model_class: Doorkeeper::Application
+
+client:
+  name: client
+  uid: client-uid
+  secret: client-secret
+  redirect_uri: https://client.example.com/callback
+  scopes: read:profile
+  confidential: true
+
+verifier:
+  name: verifier
+  uid: verifier-uid
+  secret: verifier-secret
+  redirect_uri: urn:ietf:wg:oauth:2.0:oob
+  scopes: read:profile
+  confidential: true
