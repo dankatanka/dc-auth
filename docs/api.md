@@ -59,7 +59,9 @@ POST   /api/v1/applications      ← {application: {name, redirect_uri, scopes}}
 DELETE /api/v1/applications/:id  → 204
 ```
 
-- `secret` is returned by `POST` only; the list must never carry it.
+- `secret` is returned by `POST` only, and only as plaintext at creation — it is
+  stored hashed and cannot be recovered afterwards (docs/decisions.md). The list
+  must never carry it.
 - `scopes` must be a subset of the configured scopes
   (`enforce_configured_scopes`); an unknown scope is a `422`.
 - `confidential` is always `true` — every client is a backend — and is not

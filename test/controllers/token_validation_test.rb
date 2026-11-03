@@ -33,7 +33,7 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
       code: code,
       redirect_uri: @client.redirect_uri,
       client_id: @client.uid,
-      client_secret: @client.secret,
+      client_secret: "client-secret",
       code_verifier: verifier
     }
     assert_response :success
@@ -43,7 +43,7 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
 
   def introspect(token)
     post "/oauth/introspect", params: { token: token },
-      headers: { "Authorization" => "Basic #{Base64.strict_encode64("#{@verifier.uid}:#{@verifier.secret}")}" }
+      headers: { "Authorization" => "Basic #{Base64.strict_encode64("#{@verifier.uid}:verifier-secret")}" }
     assert_response :success
 
     JSON.parse(response.body)

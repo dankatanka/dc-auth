@@ -10,7 +10,7 @@ module Api
       def create
         application = Doorkeeper::Application.new(application_params)
         if application.save
-          render json: application_json(application).merge(secret: application.secret), status: :created
+          render json: application_json(application).merge(secret: application.plaintext_secret), status: :created
         else
           render json: { errors: application.errors.full_messages }, status: :unprocessable_content
         end

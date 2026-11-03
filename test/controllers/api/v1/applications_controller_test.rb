@@ -5,7 +5,7 @@ module Api
     class ApplicationsControllerTest < ActionController::TestCase
       def authorize_with(application, scopes)
         token = Doorkeeper::AccessToken.create!(application: application, scopes: scopes, expires_in: 15.minutes)
-        @request.headers["Authorization"] = "Bearer #{token.token}"
+        @request.headers["Authorization"] = "Bearer #{token.plaintext_token}"
       end
 
       setup do
@@ -36,7 +36,10 @@ module Api
         } }
 
         assert_response :created
-        assert JSON.parse(response.body)["secret"].present?
+        secret = JSON.parse(response.body)["secret"]
+        created = Doorkeeper::Application.find_by!(name: "new-app")
+        assert created.secret_matches?(secret), "the returned secret does not authenticate"
+        assert_not_equal created.secret, secret
       end
 
       test "create rejects an unconfigured scope" do

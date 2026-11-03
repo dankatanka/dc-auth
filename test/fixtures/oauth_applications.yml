@@ -4,7 +4,7 @@ _fixture:
 client:
   name: client
   uid: client-uid
-  secret: client-secret
+  secret: <%= Digest::SHA256.hexdigest("client-secret") %>
   redirect_uri: https://client.example.com/callback
   scopes: read:profile
   confidential: true
@@ -12,7 +12,7 @@ client:
 verifier:
   name: verifier
   uid: verifier-uid
-  secret: verifier-secret
+  secret: <%= Digest::SHA256.hexdigest("verifier-secret") %>
   redirect_uri: urn:ietf:wg:oauth:2.0:oob
   scopes: read:profile
   confidential: true
@@ -20,7 +20,7 @@ verifier:
 admin:
   name: admin
   uid: admin-uid
-  secret: admin-secret
+  secret: <%= Digest::SHA256.hexdigest("admin-secret") %>
   redirect_uri: urn:ietf:wg:oauth:2.0:oob
   scopes: "admin:users admin:apps"
   confidential: true

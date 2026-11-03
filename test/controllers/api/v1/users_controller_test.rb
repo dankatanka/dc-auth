@@ -5,7 +5,7 @@ module Api
     class UsersControllerTest < ActionController::TestCase
       def authorize_with(application, scopes)
         token = Doorkeeper::AccessToken.create!(application: application, scopes: scopes, expires_in: 15.minutes)
-        @request.headers["Authorization"] = "Bearer #{token.token}"
+        @request.headers["Authorization"] = "Bearer #{token.plaintext_token}"
       end
 
       setup do
