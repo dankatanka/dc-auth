@@ -38,7 +38,9 @@ It uses `create!`, prints nothing, and is therefore **not idempotent**: a second
 `db:seed` against the same database raises on the duplicate rows rather than
 skipping them silently. That is deliberate — wrong or partial seed data fails
 loudly. `db:seed:replant` (what `bin/ci` runs) truncates first and works.
-Generated `uid`/`secret` values are not printed; read them from the console.
+Generated `uid`/`secret` values are not printed, and the secret is hashed at
+rest, so a seeded application's secret cannot be recovered afterwards
+(docs/bootstrap.md).
 
 The sample accounts are test credentials with a known password. Locally that is
 the point; pointed at a shared or production database it is a hole. `db:seed`

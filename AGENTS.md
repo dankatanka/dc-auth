@@ -31,6 +31,7 @@ behavior, update the doc in the same change. Full rationale:
 | What must revoke, and when | `docs/revocation.md` |
 | What endpoints exist, how does the admin app authenticate | `docs/api.md` |
 | How do I run it, why is the database set up this way, what is broken | `docs/operations.md` |
+| How do I bootstrap a production instance | `docs/bootstrap.md` |
 | Which versions, why this gem and not that one | `docs/stack.md` |
 | What is built, what is next | `docs/roadmap.md` |
 | Why not JWT / Pundit / a policy DSL | `docs/decisions.md` |

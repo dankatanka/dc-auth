@@ -73,16 +73,18 @@ DELETE /api/v1/applications/:id  → 204
 ## Bootstrapping the first admin app
 
 The first admin app cannot be created through the admin API, because creating it
-requires the scopes it would grant. `db/seeds.rb` creates it with
-`Doorkeeper::Application.create!` and a non-http redirect URI
-(`urn:ietf:wg:oauth:2.0:oob`), `scopes = "admin:users admin:apps"`, and
-`confidential = true`.
+requires the scopes it would grant. It is created out of band — `db/seeds.rb`
+for development, a runner script for production (docs/bootstrap.md) — with a
+non-http redirect URI (`urn:ietf:wg:oauth:2.0:oob`),
+`scopes = "admin:users admin:apps"`, and `confidential = true`.
 
 Seeding is deliberately **not idempotent**: `create!` raises on a re-run against
 a database that already holds these rows, so nothing is silently reused or
-skipped. The generated `uid`/`secret` are not printed; read them with
-`Doorkeeper::Application.find_by!(name: "admin")`, then rotate the secret once
-the admin app is configured.
+skipped. Application secrets are hashed at rest (`hash_application_secrets`), so
+the `uid`/`secret` are in plaintext only on the instance that created the row —
+capture them then. There is no rotate endpoint: a lost secret means destroying
+and recreating the application, which drops its access tokens and grants with
+it.
 
 Application creation must be **the only** way to get these scopes. No
 self-service dynamic client registration — on an internal auth service that is a

@@ -62,6 +62,7 @@ Versions, why each was chosen, and what was deliberately left out:
 | [revocation.md](docs/revocation.md) | What must revoke and when, refresh rotation |
 | [api.md](docs/api.md) | Endpoint table, scopes, admin app bootstrap |
 | [operations.md](docs/operations.md) | Dev workflow, frontend, database topology, Dockerfile, known gaps |
+| [bootstrap.md](docs/bootstrap.md) | First-time production setup: schema, admin app, first administrator |
 | [stack.md](docs/stack.md) | Versions, version policy, rejected dependencies |
 | [roadmap.md](docs/roadmap.md) | Phase 0–1 status and Phases 2–4 |
 | [decisions.md](docs/decisions.md) | Locked decisions and non-goals |
