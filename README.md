@@ -38,15 +38,15 @@ authorization to it instead of each growing their own user table.
 
 | Layer | Choice |
 |---|---|
-| Runtime | Ruby 4.0.7 |
-| Framework | Rails 8.1.4 (full, not `--api`) |
+| Runtime | Ruby 4.0 |
+| Framework | Rails 8.1 (full, not `--api`) |
 | Database | PostgreSQL 18 — **one** database per environment, shared with Solid Cache and Solid Queue |
-| Auth (humans) | Devise 5.0.4 |
-| Auth (OAuth 2.0) | Doorkeeper 5.9.9, opaque tokens + RFC 7662 introspection |
+| Auth (humans) | Devise 5 |
+| Auth (OAuth 2.0) | Doorkeeper 5, opaque tokens + RFC 7662 introspection |
 | Frontend | Vite (yarn); no asset pipeline, no importmaps |
-| Jobs / cache | Solid Queue 1.7.0 / Solid Cache 1.0.10 |
-| App server | Puma 8.0.2, Thruster in the image |
-| Dev container | `.devcontainer/` — same `ruby:4.0.7-slim` base, `postgres:18` sidecar |
+| Jobs / cache | Solid Queue 1 / Solid Cache 1 |
+| App server | Puma 8, Thruster in the image |
+| Dev container | `.devcontainer/` — same `ruby:4.0-slim` base, `postgres:18` sidecar |
 | Tests | Minitest + fixtures |
 
 Versions, why each was chosen, and what was deliberately left out:
@@ -75,5 +75,4 @@ bin/dev          # Rails on :3000 + Vite on :3036, via Foreman
 bin/rails test   # Minitest suite
 ```
 
-Details, including why `bin/dev` pins the port and what is currently broken in
-CI: [docs/operations.md](docs/operations.md).
+Details, including why `bin/dev` pins the port: [docs/operations.md](docs/operations.md).

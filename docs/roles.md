@@ -23,7 +23,7 @@ Rails 8 **removed** the keyword form. The positional form is required:
 Map names to their own string values — `enum :role, { customer: "customer",
 administrator: "administrator" }`, or the compact
 `%i[customer administrator].index_with(&:to_s)`. **Never use the plain array form
-on a string column.** Measured on Rails 8.1.3.1:
+on a string column.** Measured on Rails 8.1:
 
 | Definition (string column) | `role` reads | stored in DB | `administrator?` |
 |---|---|---|---|

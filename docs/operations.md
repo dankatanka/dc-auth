@@ -98,8 +98,8 @@ the same cache — every step reporting the same `current_database()`.
 
 ## Containers
 
-`Dockerfile` is the Rails 8 multi-stage build on `ruby:4.0.7-slim`, held at
-`ARG RUBY_VERSION=4.0.7` to match `.ruby-version`. Runtime packages are `curl`,
+`Dockerfile` is the Rails 8 multi-stage build on the `ruby:4.0` slim base, held
+at `ARG RUBY_VERSION` to match `.ruby-version`. Runtime packages are `curl`,
 `postgresql-client`, `libvips`, `libjemalloc2`; the throw-away build stage adds
 `build-essential`, `git`, `libpq-dev`, `libvips`, `libyaml-dev`, `pkg-config`,
 and — because of Vite — `nodejs` and `npm` (npm installs the pinned Yarn at
@@ -177,9 +177,9 @@ does not know this app:
 
 | Deviation | Why |
 |---|---|
-| `FROM docker.io/library/ruby:4.0.7-slim` instead of `ghcr.io/rails/devcontainer/images/ruby` | Dev and production share one base image, so they cannot drift |
+| `FROM docker.io/library/ruby:4.0-slim` instead of `ghcr.io/rails/devcontainer/images/ruby` | Dev and production share one base image, so they cannot drift |
 | Compilers installed in the Dockerfile | `ruby-slim` has no compilers and `bcrypt` is the one gem here that needs one. `psql` comes from the `postgres-client` feature, not from apt |
-| `postgres:18` sidecar instead of `postgres:16.1` | Rails still writes `16.1`, which is from January 2024 |
+| `postgres:18` sidecar instead of the generator's older default | Rails' template still writes an old major, from January 2024 |
 | `postgres-data` mounted at `/var/lib/postgresql`, not `/var/lib/postgresql/data` | Postgres 18 keeps `PGDATA` in a versioned subdirectory; at the old path the container exits with a mount-point error |
 | `3036` added to `forwardPorts` | Vite's dev server, for HMR |
 | `postCreateCommand` installs Yarn and runs `yarn install --frozen-lockfile` | `bin/setup` installs gems and prepares the database, not `node_modules`; the `node:1` feature ships npm, not Yarn |
@@ -205,7 +205,7 @@ template, losing the single-database production block and the `DB_HOST` anchor.
 Back it up first, or reapply those afterwards.
 
 Verified: `docker build -f .devcontainer/Dockerfile .` succeeds on
-`ruby:4.0.7-slim`; the `postgres:18` sidecar comes up and accepts the app's
+`ruby:4.0-slim`; the `postgres:18` sidecar comes up and accepts the app's
 host and credentials through the compose network; `docker compose -f
 .devcontainer/compose.yaml config` resolves the bind mount to
 `/workspaces/dc-auth`; and `config/database.yml` resolves to the sidecar's host
