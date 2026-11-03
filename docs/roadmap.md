@@ -36,6 +36,9 @@ The `User` modules are `database_authenticatable`, `registerable`,
   the account half of the problem. The early-lockout option
   (`maximum_attempts`, `unlock_strategy: :time` plus email unlock) is a config
   choice, not code — still at Devise's defaults.
+- `:validatable` requires a password of at least 8 characters
+  (`config.password_length`), not Devise's 6-character default: this service is
+  the platform's identity authority, so the floor is ours to set.
 - `timeoutable` and `rememberable` are skipped — a 15-minute token already
   bounds a session and neither has a requirement behind it. `reconfirmable` is on,
   so changing an email needs the new address confirmed before it applies.
