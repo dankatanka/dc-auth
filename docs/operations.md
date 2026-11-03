@@ -124,6 +124,17 @@ Do not install `tzdata` or Ruby by hand — the base image already has Ruby 4.0.
 Do not add a Kamal config; deployment orchestration is not this service's
 problem, and `kamal` is not in the Gemfile.
 
+### Building and pushing
+
+`bin/build-image` builds this image and pushes it to
+`registry.datacenter.home/infrastructure/auth`, tagged with `HEAD` or with the
+tag given as its first argument. The push goes by name through the cluster's
+shared ingress, whose test CA the workstation already trusts, so it needs no
+`insecure-registries` entry. The nodes pull the same repository by VIP
+(`192.168.111.11:5000`) — the host in the reference only picks the door — which
+is why the script prints both refs. The tag is what the cluster pins, so the
+script refuses to build a dirty tree.
+
 ### Compose
 
 `compose.yaml` at the repo root runs the production image against a
@@ -145,8 +156,8 @@ docker compose run --rm -e RAILS_ENV=test app \
 
 Notes:
 
-- It runs the **production** image (`Dockerfile`), so the app is behind Thruster
-  on `:80`, published as `3000`. The dev container's image is unrelated.
+- It runs the **production** image (`Dockerfile`), so the app is Puma on
+  `:3000`, published as `3000`. The dev container's image is unrelated.
 - Environment is `${VAR:-default}` interpolation, not `env_file:`. Defaults are
   local-only; override per run from the shell or with `docker compose run -e
   KEY=value` (`POSTGRES_PASSWORD` feeds both `POSTGRES_PASSWORD` and the app's

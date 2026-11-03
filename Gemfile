@@ -28,9 +28,6 @@ gem "solid_queue"
 # Reduces boot times through caching
 gem "bootsnap", require: false
 
-# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma
-gem "thruster", require: false
-
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false

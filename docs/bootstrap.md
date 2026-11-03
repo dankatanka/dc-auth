@@ -96,8 +96,9 @@ SMTP is not configured (`config.action_mailer.smtp_settings` is commented out),
 so until it is, users created through the API can never confirm. Wire it before
 creating them (docs/operations.md).
 
-The image serves Thruster on `:80` as uid 1000. `GET /up` is the health
-endpoint; it proves the app booted, not that Postgres is reachable.
+The image serves Puma on `:3000` as uid 1000 (uid 1000 cannot bind `:80`).
+`GET /up` is the health endpoint; it proves the app booted, not that Postgres is
+reachable.
 
 ## 5. Client applications
 

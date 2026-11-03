@@ -15,7 +15,7 @@ so look them up in the lockfile when they matter.
 | Auth (humans) | Devise 5 |
 | Auth (OAuth 2.0) | Doorkeeper 5, opaque tokens + RFC 7662 introspection |
 | Jobs / cache | Solid Queue 1 / Solid Cache 1 |
-| App server | Puma 8, Thruster in the image |
+| App server | Puma 8 |
 | Frontend | Vite 8 + vite_ruby 3 (yarn) |
 | Dev process runner | Foreman |
 | Password hashing | bcrypt |
@@ -27,9 +27,9 @@ so look them up in the lockfile when they matter.
 Deliberately **not** in the stack: `solid_cable` and Action Cable (nothing here
 pushes a socket), Action Mailbox, Action Text, Active Storage, `propshaft`,
 `importmap-rails`, `turbo-rails`, `stimulus-rails`, `image_processing`, `kamal`,
-`tzinfo-data`, `bundler-audit`, `doorkeeper-jwt`, `doorkeeper-openid_connect`,
-`jwt`, `rack-cors`, `pundit`, `rolify`, `cancancan`, `factory_bot`, `rspec`,
-`sidekiq`, `redis`.
+`thruster`, `tzinfo-data`, `bundler-audit`, `doorkeeper-jwt`,
+`doorkeeper-openid_connect`, `jwt`, `rack-cors`, `pundit`, `rolify`, `cancancan`,
+`factory_bot`, `rspec`, `sidekiq`, `redis`.
 
 There are no test frameworks. Minitest and fixtures ship with Rails, and they
 are enough for what Auth Service needs: model validations, the introspection
@@ -60,6 +60,11 @@ unused while there are no system tests (docs/operations.md).
 - **`solid_cable` was dropped** and Action Cable is not required at all. The
   consent screen is a plain form POST; nothing in Auth Service pushes a
   websocket.
+- **Thruster was dropped.** It buys gzip, X-Sendfile, and static-file caching in
+  front of Puma; there is no Active Storage here, the app answers with one form
+  and JSON, and Puma serves `public/` on its own. It cost a supervisor process
+  and a `:80` binding uid 1000 cannot have. Compression and caching, if they are
+  ever wanted, belong to the ingress.
 
 ## Version policy
 

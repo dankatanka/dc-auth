@@ -45,7 +45,7 @@ authorization to it instead of each growing their own user table.
 | Auth (OAuth 2.0) | Doorkeeper 5, opaque tokens + RFC 7662 introspection |
 | Frontend | Vite (yarn); no asset pipeline, no importmaps |
 | Jobs / cache | Solid Queue 1 / Solid Cache 1 |
-| App server | Puma 8, Thruster in the image |
+| App server | Puma 8 |
 | Dev container | `.devcontainer/` — same `ruby:4.0-slim` base, `postgres:18` sidecar |
 | Tests | Minitest + fixtures |
 

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pushed by name through the shared ingress: the name resolves to the ingress
+# VIP and its test CA is trusted here, so pushes need no insecure-registries.
+image="registry.datacenter.home/infrastructure/auth"
+tag="${1:-$(git rev-parse HEAD)}"
+
+# The tag is what the Deployment pins, so a build from a dirty tree would name
+# an image that git cannot reproduce.
+if [ -n "$(git status --porcelain)" ]; then
+  echo "working tree is dirty; commit before building" >&2
+  exit 1
+fi
+
+docker build -t "$image:$tag" .
+docker push "$image:$tag"
+
+# Nodes pull the same repository by VIP; they do not trust the test CA.
+echo "pushed:   $image:$tag"
+echo "app.yaml: 192.168.111.11:5000/infrastructure/auth:$tag"

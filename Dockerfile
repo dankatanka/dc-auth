@@ -2,7 +2,7 @@
 # check=error=true
 
 # Production image. For development, see .devcontainer/ instead.
-# Build by hand with: docker build -t dc_auth .
+# Build and push with: bin/build-image
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=4.0.7
@@ -63,6 +63,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Thruster by default; override at runtime to serve differently.
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# Puma on 3000, not 80: uid 1000 cannot bind a privileged port.
+EXPOSE 3000
+CMD ["./bin/rails", "server"]
