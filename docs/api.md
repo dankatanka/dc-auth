@@ -26,7 +26,8 @@ a Doorkeeper application holding `admin:users admin:apps`, obtained via
 
 Every request carries `Authorization: Bearer <token>`. A token missing the
 endpoint's scope is `403`; no token, an expired one, or a revoked one is `401`.
-The controllers inherit `ActionController::API` and render JSON.
+An unknown `:id` is `404 {error: "not found"}`. The controllers inherit
+`ActionController::API` and render JSON.
 
 Users, `admin:users`:
 

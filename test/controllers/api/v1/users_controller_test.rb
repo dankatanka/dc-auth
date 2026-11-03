@@ -39,6 +39,15 @@ module Api
         assert_equal "ada@example.com", JSON.parse(response.body)["email"]
       end
 
+      test "an unknown id is a JSON 404" do
+        authorize_with(@admin, "admin:users")
+
+        get :show, params: { id: 0 }
+
+        assert_response :not_found
+        assert JSON.parse(response.body)["error"].present?
+      end
+
       test "create makes an unconfirmed user with the default role" do
         authorize_with(@admin, "admin:users")
 
