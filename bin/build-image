@@ -13,9 +13,10 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-docker build -t "$image:$tag" .
-docker push "$image:$tag"
+stamp="0.1.$(date +%s)"
 
-# Nodes pull the same repository by VIP; they do not trust the test CA.
-echo "pushed:   $image:$tag"
-echo "app.yaml: 192.168.111.11:5000/infrastructure/auth:$tag"
+docker build -t "$image:$tag" -t "$image:$stamp" .
+docker push "$image:$tag"
+docker push "$image:$stamp"
+
+echo "pushed: $image:$tag $image:$stamp"

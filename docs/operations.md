@@ -128,12 +128,15 @@ problem, and `kamal` is not in the Gemfile.
 
 `bin/build-image` builds this image and pushes it to
 `registry.datacenter.home/infrastructure/auth`, tagged with `HEAD` or with the
-tag given as its first argument. The push goes by name through the cluster's
+tag given as its first argument. It also pushes `0.1.<epoch>`, the tag Flux's
+ImagePolicy orders on: the policy must be `semver` (`range: '>=0.1.0'`), since a
+`numerical` policy matching the old `main-<sha>-<epoch>` shape now matches no
+non-sha tag at all. The leading `0.1` is a constant, not a version. The push
+goes by name through the cluster's
 shared ingress, whose test CA the workstation already trusts, so it needs no
 `insecure-registries` entry. The nodes pull the same repository by VIP
-(`192.168.111.11:5000`) — the host in the reference only picks the door — which
-is why the script prints both refs. The tag is what the cluster pins, so the
-script refuses to build a dirty tree.
+(`192.168.111.11:5000`) — the host in the reference only picks the door. The tag
+is what the cluster pins, so the script refuses to build a dirty tree.
 
 ### Compose
 
