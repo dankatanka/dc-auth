@@ -13,12 +13,12 @@ authorization to it instead of each growing their own user table.
 > (`test/controllers/token_validation_test.rb`). Phase 2 adds `/api/v1` —
 > users, OAuth applications, global sign-out, and the admin app seed — behind
 > `admin:users` / `admin:apps` bearer tokens. The human-facing screens are the
-> gems' stock views, not yet customized. See [docs/roadmap.md](docs/roadmap.md).
+> gems' stock views, except the home page. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What this is
 
-- Registration, email confirmation, password reset, profile — the only human UI
-  it has, plus the OAuth consent screen.
+- Registration, email confirmation, password reset, profile, and a home page —
+  the only human UI it has, plus the OAuth consent screen.
 - OAuth 2.0 authorization server: client apps get tokens for users, and for
   themselves.
 - Single source of truth for users, roles, and OAuth applications.

@@ -81,3 +81,12 @@ admin app's audit view. This is the mitigation for having no central policy view
 
 MFA. `doorkeeper-openid_connect` if an external consumer appears. Scopes as a
 per-user permission model if per-app limits become real.
+
+## Not scheduled
+
+The profile service, which owns user settings. Until it exists, `/` is the
+post-auth destination and `home#index` is a stub — a signed-in user gets their
+email, a profile link, and sign-out. When it exists the swap is one method,
+`after_sign_in_path_for` in `ApplicationController`, and it must keep
+`stored_location_for` first so a user who signs in from `/oauth/authorize` still
+lands back on the consent screen. `HomeController` and its view then delete.

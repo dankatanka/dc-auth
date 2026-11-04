@@ -2,6 +2,7 @@
 
 | Endpoint | Auth | Purpose |
 |---|---|---|
+| `GET /` | none / session | home: sign-in form when anonymous, “you're signed in” page otherwise |
 | `GET/POST /users/*` | none / session | Devise registration, confirmation, reset, profile |
 | `GET /oauth/authorize` | user session | consent screen |
 | `POST /oauth/token` | client secret | `authorization_code`, `refresh_token`, `client_credentials` |
@@ -17,6 +18,11 @@
 
 The `/oauth/*` and `/users/*` routes are mounted (Phase 0); `/api/v1/*` is
 built (Phase 2).
+
+`GET /oauth/authorize` without a session sends the user to the sign-in form and
+returns them to the consent screen afterwards, query parameters intact — the
+return-to is stored by Warden's failure app, so the authenticator must call
+`warden.authenticate!`, not `redirect_to`.
 
 `/api/v1/*` is a normal Doorkeeper-protected controller. The admin app is itself
 a Doorkeeper application holding `admin:users admin:apps`, obtained via

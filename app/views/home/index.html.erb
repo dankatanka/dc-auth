@@ -1,0 +1,6 @@
+<h1>Signed in</h1>
+
+<p><%= current_user.email %></p>
+
+<%= link_to "Profile", edit_user_registration_path %>
+<%= button_to "Sign out", destroy_user_session_path, method: :delete %>

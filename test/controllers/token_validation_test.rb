@@ -71,4 +71,23 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
     assert_equal "administrator", claims["role"]
     assert_equal true, claims["email_verified"]
   end
+
+  test "a signed-out visitor returns to the consent screen after signing in" do
+    @user.update!(password: "correct horse")
+
+    get "/oauth/authorize", params: {
+      client_id: @client.uid,
+      redirect_uri: @client.redirect_uri,
+      response_type: "code",
+      scope: "read:profile",
+      state: "proof-state"
+    }
+    assert_redirected_to "/users/sign_in"
+
+    post "/users/sign_in", params: { user: { email: @user.email, password: "correct horse" } }
+    assert_match %r{/oauth/authorize\?}, response.location
+
+    follow_redirect!
+    assert_response :success
+  end
 end
