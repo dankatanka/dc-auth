@@ -303,17 +303,9 @@ Doorkeeper.configure do
   #
   # access_token_methods :from_bearer_authorization, :from_access_token_param, :from_bearer_param
 
-  # Forces the usage of the HTTPS protocol in non-native redirect uris (enabled
-  # by default in non-development environments). OAuth2 delegates security in
-  # communication to the HTTPS protocol so it is wise to keep this enabled.
-  #
-  # Callable objects such as proc, lambda, block or any object that responds to
-  # #call can be used in order to allow conditional checks (to allow non-SSL
-  # redirects to localhost for example).
-  #
-  # force_ssl_in_redirect_uri !Rails.env.development?
-  #
-  # force_ssl_in_redirect_uri { |uri| uri.host != 'localhost' }
+  # Loopback is the one non-HTTPS redirect that is not a downgrade: the callback
+  # never leaves the developer's own machine. Everything else stays HTTPS-only.
+  force_ssl_in_redirect_uri { |uri| !%w[localhost 127.0.0.1 [::1]].include?(uri.host) }
 
   # Specify what redirect URI's you want to block during Application creation.
   # Any redirect URI is allowed by default.

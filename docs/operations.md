@@ -31,8 +31,9 @@ How to run the thing, and where its current edges are.
 `administrator@example.com` and `customer@example.com`, one per role, password
 `password123`. It loads in every environment: Rails loads only this one
 file, there is no per-environment seed. `sample-client`'s redirect URI is
-`https://localhost:3001/oauth/callback` — Doorkeeper forces SSL outside
-development, so an `http://` one fails there.
+`https://localhost:3001/oauth/callback` — Doorkeeper forces SSL on every redirect
+URI except loopback (`localhost`, `127.0.0.1`, `::1`), so an `http://` one on any
+other host fails.
 
 It uses `create!`, prints nothing, and is therefore **not idempotent**: a second
 `db:seed` against the same database raises on the duplicate rows rather than

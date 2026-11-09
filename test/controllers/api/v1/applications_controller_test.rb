@@ -51,6 +51,23 @@ module Api
         assert JSON.parse(response.body)["errors"].present?
       end
 
+      test "create accepts an http loopback redirect for local development" do
+        post :create, params: { application: {
+          name: "local-app", redirect_uri: "http://localhost:3000/oauth/callback", scopes: "read:profile"
+        } }
+
+        assert_response :created
+      end
+
+      test "create rejects an http redirect that is not loopback" do
+        post :create, params: { application: {
+          name: "insecure-app", redirect_uri: "http://insecure.example.com/callback", scopes: "read:profile"
+        } }
+
+        assert_response :unprocessable_content
+        assert JSON.parse(response.body)["errors"].present?
+      end
+
       test "destroy removes the application" do
         doomed = Doorkeeper::Application.create!(
           name: "doomed", redirect_uri: "urn:ietf:wg:oauth:2.0:oob", scopes: "read:profile"

@@ -117,4 +117,5 @@ curl -s -X POST https://auth.example.com/api/v1/applications \
 ```
 
 The response carries the secret, and only that response does. Redirect URIs must
-be https outside development. Endpoint shapes: docs/api.md.
+be https except on loopback (`localhost`, `127.0.0.1`, `::1`), where `http` is
+allowed for local development. Endpoint shapes: docs/api.md.

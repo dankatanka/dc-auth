@@ -12,6 +12,7 @@ not just the code.
 | Refresh-token reuse | the replayed request fails (`400 invalid_grant`); the rest of the chain stays live | Whole-chain revocation is custom error-path code; replay is already caught per-request, and password change is the blunt kill switch when a session must die (docs/revocation.md) |
 | JWT / OIDC / JWKS | rejected | Buys nothing without an offline client; costs revocation and key rotation |
 | Browser clients / CORS | none | Every client is a backend — no SPA, no public client, no CORS config |
+| Loopback redirects | `http://localhost`, `http://127.0.0.1`, `http://[::1]` allowed; every other redirect must be HTTPS | A local BFF callback never leaves the developer's machine, and TLS on every dev host buys nothing; a non-loopback `http` redirect is a real downgrade and stays refused |
 | Roles | Rails `enum` on a string column, name sent in introspection | Client apps only need the name (docs/roles.md) |
 | Scopes | Doorkeeper's built-in, used for the app dimension only | Not a user permission model |
 | Admin UI | none — API only | The admin app lives in another app |
