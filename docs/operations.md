@@ -4,7 +4,7 @@ How to run the thing, and where its current edges are.
 
 ## Development
 
-`bin/setup` (Rails default) prepares the database and dependencies. After that:
+`bin/setup` prepares the database, dependencies, and the OIDC signing key. After that:
 
 - **`bin/dev`** — Foreman, per `Procfile.dev`: `web` runs `bin/rails server`,
   `vite` runs `bin/vite dev`. Rails lands on port 3000, the Vite dev server on
@@ -27,7 +27,8 @@ How to run the thing, and where its current edges are.
 ## Seed data
 
 `db/seeds.rb` creates the `admin` OAuth application (docs/api.md), a
-`sample-client` application with `read:profile`, and two confirmed users —
+`dashboard` application on `http://localhost:3000/oauth/callback`, a
+`sample-client` application with `openid profile email`, and two confirmed users —
 `administrator@example.com` and `customer@example.com`, one per role, password
 `password123`. It loads in every environment: Rails loads only this one
 file, there is no per-environment seed. `sample-client`'s redirect URI is
@@ -35,13 +36,14 @@ file, there is no per-environment seed. `sample-client`'s redirect URI is
 URI except loopback (`localhost`, `127.0.0.1`, `::1`), so an `http://` one on any
 other host fails.
 
-It uses `create!`, prints nothing, and is therefore **not idempotent**: a second
-`db:seed` against the same database raises on the duplicate rows rather than
-skipping them silently. That is deliberate — wrong or partial seed data fails
-loudly. `db:seed:replant` (what `bin/ci` runs) truncates first and works.
-Generated `uid`/`secret` values are not printed, and the secret is hashed at
-rest, so a seeded application's secret cannot be recovered afterwards
-(docs/bootstrap.md).
+It uses `create!` and is therefore **not idempotent**: a second `db:seed`
+against the same database raises on the duplicate rows rather than skipping them
+silently. That is deliberate — wrong or partial seed data fails loudly.
+`db:seed:replant` (what `bin/ci` runs) truncates first and works.
+Secrets are hashed at rest, so `db/seeds.rb` prints `dashboard`'s
+`AUTH_SERVICE_CLIENT_ID` and `AUTH_SERVICE_CLIENT_SECRET` as it creates it — the
+only moment either is readable. No other seeded application's `uid`/`secret` is
+printed, and those cannot be recovered afterwards (docs/bootstrap.md).
 
 The sample accounts are test credentials with a known password. Locally that is
 the point; pointed at a shared or production database it is a hole. `db:seed`
@@ -145,7 +147,10 @@ is what the cluster pins, so the script refuses to build a dirty tree.
 `postgres:18` sidecar, for trying the built image without a dev container. Most
 of its environment is `${VAR:-default}` substitution, so it needs no `.env` —
 override from the shell (`POSTGRES_PASSWORD=... docker compose up`). `.env`
-stays a `bin/dev` concern. The app listens on `http://localhost:3000`.
+stays a `bin/dev` concern. The app listens on `http://localhost:3000`. It mounts
+`tmp/oidc-signing-key.pem` read-only, so `bin/setup` must have run once; the
+issuer and mailer links are `https://APP_HOST` because production assumes a TLS
+proxy in front, while the container itself serves plain http.
 
 `db:prepare` runs on first boot and loads the schema and `db/seeds.rb`, so the
 sample accounts are there without an extra step. A second `db:seed` raises by
@@ -237,7 +242,13 @@ Confirmation and password-reset mail needs two things the app will not guess:
 
 - **`APP_HOST`** — the host in mailer links. Required in production: the boot
   fails if it is unset rather than mailing `example.com` links. Defaults to
-  `localhost` in development and test.
+  `localhost` in development and test. It is also the fixed issuer in discovery
+  and every ID token, which is why a client must reach the app on this host
+  (docs/validation.md).
+- **`OIDC_SIGNING_KEY_PATH`** — a PEM file holding the RSA key that signs ID
+  tokens. Required in production; development and test fall back to the
+  gitignored `tmp/oidc-signing-key.pem` that `bin/setup` generates
+  (docs/bootstrap.md).
 
 Both are read directly from the process environment. `bin/dev` gets them from
 `.env` via Foreman; the production container needs them set in its runtime
@@ -251,7 +262,8 @@ than discovered later.
 
 - **`config/initializers/content_security_policy.rb`** has a commented example
   mentioning importmap nonces. Harmless.
-- **The human-facing screens are stock gem views.** Login and registration are
-  Devise's views; the consent screen is Doorkeeper's. Only the layout is ours.
+- **The human-facing screens are stock gem views, except the consent screen.**
+  Login and registration are Devise's views; the consent screen is an app-owned
+  copy of Doorkeeper's, kept only to submit the OIDC `nonce` (docs/validation.md).
   The flows work end to end (`test/controllers/token_validation_test.rb`), but
   there is no branding or error-message customization yet. See docs/roadmap.md.

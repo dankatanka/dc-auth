@@ -15,7 +15,7 @@ token=<token under test>
     "first_name": "Ada",
     "last_name": "Lovelace",
     "role": "administrator",
-    "scope": "read:profile",
+    "scope": "openid profile email",
     "client_id": "...",
     "iat": 1234567000,
     "exp": 1234567890 }
@@ -95,9 +95,9 @@ Names and role are columns we add ourselves.
 
 RFC 7662 §2.2 says extension fields should follow the JWT claim set, so
 `email_verified` rather than `confirmed`, and `updated_at` rather than
-`profile_updated_at`. The payoff is that if `doorkeeper-openid_connect` or JWKS
-is ever enabled, those claims need no mapping and no client app changes. The name
-claims are the deliberate exception (below).
+`profile_updated_at`. The payoff is that the OIDC provider (docs/decisions.md)
+sends those claims with no mapping and no client app changes. The name claims
+are the deliberate exception (below).
 
 The response is built by a **whitelist** method on `User` — `introspection_claims`
 — and never by `as_json`. A Devise model carries `encrypted_password`,
@@ -140,6 +140,70 @@ freezes the user's email and role.
 **Do not log introspection response bodies.** They carry PII now, and
 `config.filter_parameters` only covers params, not responses.
 
+## The OIDC surface
+
+`doorkeeper-openid_connect` adds `GET /.well-known/openid-configuration`,
+`GET /oauth/discovery/keys`, and `GET|POST /oauth/userinfo`, and puts an
+`id_token` in the token response whenever the grant carries the `openid` scope.
+
+It is the same user data over a different wire, so it must not become a second
+whitelist:
+
+- **Values come from `User#introspection_claims`** — the same method, so the two
+  surfaces cannot drift. Only the names differ: `first_name`/`last_name` go out
+  as `given_name`/`family_name`, and `sub` is the same `id.to_s`. A test asserts
+  the OIDC claim names are exactly the introspection keys with those two
+  renames, minus `sub` (which OIDC supplies itself).
+- **Claims follow the granted scopes**: `email` and `email_verified` by `email`,
+  the rest by `profile`; `openid` alone yields just `sub`. Off-the-shelf RP
+  libraries ask for `openid profile email`, which is why all three are
+  configured scopes and why existing applications were granted them; the
+  migration that grants them also drops the retired `read:profile`
+  (docs/decisions.md).
+- **The ID token is an identity assertion, not an authorization one.** It is
+  signed RS256 with the key at `OIDC_SIGNING_KEY_PATH` and published at
+  `/oauth/discovery/keys`; no JWT access token is issued, so every authorization
+  decision still goes through introspection.
+- **The issuer is one fixed value, not the request host.** Discovery and the ID
+  token both report `#{scheme}://APP_HOST`. The ID token is built during the
+  token exchange, where the gem hands the issuer block no request, so a
+  request-derived issuer would be advertised in discovery and never signed into
+  the token — the mismatch that makes an RP reject every ID token. A fixed value
+  also keeps a forged `Host` header out of the issuer.
+
+The signing key is the one new secret, and it is a single key with no rotation
+window: rotating it invalidates every client's cached JWKS until they refetch.
+That is the deliberate ceiling (docs/bootstrap.md).
+
+### Session parameters an RP will send
+
+Four of these are configured rather than left at the gem's default, because the
+default is either a `500` or a security hole:
+
+- **`nonce`** rides through the consent form. Doorkeeper's stock
+  `authorizations/new` view submits no `nonce`, so the grant and the ID token
+  lose it and a conforming RP rejects the token; we own that one view to add the
+  hidden field to both forms. The test submits the rendered form rather than
+  re-POSTing the request, because the latter hides exactly this bug.
+- **`prompt=login`** signs the user out and sends them to the sign-in form, with
+  the consent screen stored as the return-to. Without the callback the gem
+  raises instead.
+- **`prompt=select_account`** answers `account_selection_required`. There is no
+  account picker — one session is one user — and the gem's default raises a
+  configuration error, which is a `500` for a parameter an RP is entitled to
+  send.
+- **`max_age`** is measured against *this session's* sign-in time, stamped into
+  the Rack session by Warden at sign-in. The gem's fallback is the user's most
+  recent login on any device, so a stale session could satisfy an RP's freshness
+  requirement by piggy-backing on a fresh login elsewhere. The `auth_time`
+  *claim* still reports the last login, which is what it means at issuance.
+
+`offline_access` is deliberately **not** a configured scope. `use_refresh_token`
+is unconditional, so it would be a no-op, and OIDC Core §11 requires the
+authorization server to ignore it unless `prompt=consent` is present —
+advertising it would claim an implementation that is not there. A client that
+asks for it gets `invalid_scope`; add the scope when a real one does.
+
 ## Adding name fields
 
 Devise creates no name columns — not `first_name`, `last_name`, `given_name`, or
@@ -167,12 +231,11 @@ is broken". Permit `:first_name, :last_name` for both `:sign_up` and
 
 ### Names keep their column names
 
-`first_name` and `last_name` go out as-is, so the claims match the schema with no
-translation layer to drift. The cost lands at the OIDC boundary:
-`email_verified` and `updated_at` already match standard claim names, but these
-two would need mapping to `given_name`/`family_name` in one place when
-`doorkeeper-openid_connect` is enabled. One mapping there, once — not a column
-rename now.
+`first_name` and `last_name` go out as-is over introspection, so the claims
+match the schema with no translation layer to drift. The cost lands at the OIDC
+boundary: `email_verified` and `updated_at` already match standard claim names,
+but these two are mapped to `given_name`/`family_name` in the OIDC initializer.
+One mapping there, once — not a column rename.
 
 ### Still no composed `name`
 

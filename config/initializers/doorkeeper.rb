@@ -262,7 +262,9 @@ Doorkeeper.configure do
   # https://doorkeeper.gitbook.io/guides/ruby-on-rails/scopes
   #
   # Requestable scope names; registration narrows each app to a subset.
-  optional_scopes :"read:profile", :"admin:users", :"admin:apps"
+  # `openid` turns on OIDC and `profile`/`email` gate its claims; RP libraries
+  # ask for all three, so refusing either scope breaks them.
+  optional_scopes :"admin:users", :"admin:apps", :openid, :profile, :email
 
   # Allows to restrict only certain scopes for grant_type.
   # By default, all the scopes will be available for all the grant types.

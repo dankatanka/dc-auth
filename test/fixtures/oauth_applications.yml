@@ -6,7 +6,7 @@ client:
   uid: client-uid
   secret: <%= Digest::SHA256.hexdigest("client-secret") %>
   redirect_uri: https://client.example.com/callback
-  scopes: read:profile
+  scopes: openid profile email
   confidential: true
 
 verifier:
@@ -14,7 +14,7 @@ verifier:
   uid: verifier-uid
   secret: <%= Digest::SHA256.hexdigest("verifier-secret") %>
   redirect_uri: urn:ietf:wg:oauth:2.0:oob
-  scopes: read:profile
+  scopes: openid
   confidential: true
 
 admin:

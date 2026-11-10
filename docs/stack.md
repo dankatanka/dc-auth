@@ -14,6 +14,7 @@ so look them up in the lockfile when they matter.
 | Database | PostgreSQL 18 |
 | Auth (humans) | Devise 5 |
 | Auth (OAuth 2.0) | Doorkeeper 5, opaque tokens + RFC 7662 introspection |
+| Auth (OIDC) | doorkeeper-openid_connect 2, RS256 ID tokens |
 | Jobs / cache | Solid Queue 1 / Solid Cache 1 |
 | App server | Puma 8 |
 | Frontend | Vite 8 + vite_ruby 3 (yarn) |
@@ -27,9 +28,8 @@ so look them up in the lockfile when they matter.
 Deliberately **not** in the stack: `solid_cable` and Action Cable (nothing here
 pushes a socket), Action Mailbox, Action Text, Active Storage, `propshaft`,
 `importmap-rails`, `turbo-rails`, `stimulus-rails`, `image_processing`, `kamal`,
-`thruster`, `tzinfo-data`, `bundler-audit`, `doorkeeper-jwt`,
-`doorkeeper-openid_connect`, `jwt`, `rack-cors`, `pundit`, `rolify`, `cancancan`,
-`factory_bot`, `rspec`, `sidekiq`, `redis`.
+`thruster`, `tzinfo-data`, `bundler-audit`, `doorkeeper-jwt`, `rack-cors`,
+`pundit`, `rolify`, `cancancan`, `factory_bot`, `rspec`, `sidekiq`, `redis`.
 
 There are no test frameworks. Minitest and fixtures ship with Rails, and they
 are enough for what Auth Service needs: model validations, the introspection
@@ -54,6 +54,11 @@ unused while there are no system tests (docs/operations.md).
   is supported to 2030.
 - **Opaque tokens + introspection over JWT.** See docs/decisions.md. The short
   version: a JWT buys nothing without an offline client and costs revocation.
+- **`doorkeeper-openid_connect` for the OIDC surface.** It is the reference
+  implementation on top of the Doorkeeper already here, and it only adds
+  `id_token`/discovery/userinfo — it does not change the token format, so the
+  introspection path stays the one this service is built around
+  (docs/validation.md).
 - **Vite over the Rails 8 defaults.** Vite is the only frontend toolchain here;
   the importmap/propshaft/turbo/stimulus default set was removed rather than left
   partially wired (docs/operations.md explains the consequences).

@@ -14,7 +14,7 @@ module Api
       end
 
       test "a token without the scope is forbidden" do
-        authorize_with(oauth_applications(:client), "read:profile")
+        authorize_with(oauth_applications(:client), "openid")
 
         get :index
 
@@ -83,11 +83,11 @@ module Api
       test "destroy_tokens revokes every token and grant" do
         token = Doorkeeper::AccessToken.create!(
           application: oauth_applications(:client), resource_owner_id: @ada.id,
-          scopes: "read:profile", expires_in: 15.minutes
+          scopes: "openid", expires_in: 15.minutes
         )
         grant = Doorkeeper::AccessGrant.create!(
           application: oauth_applications(:client), resource_owner_id: @ada.id,
-          redirect_uri: "https://client.example.com/callback", scopes: "read:profile", expires_in: 10.minutes
+          redirect_uri: "https://client.example.com/callback", scopes: "openid", expires_in: 10.minutes
         )
         authorize_with(@admin, "admin:users")
 

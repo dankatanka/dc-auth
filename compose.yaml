@@ -20,6 +20,7 @@ services:
       RAILS_ENV: production
       RAILS_LOG_TO_STDOUT: "1"
       APP_HOST: ${APP_HOST:-localhost}
+      OIDC_SIGNING_KEY_PATH: /rails/oidc-signing-key.pem
       SECRET_KEY_BASE: "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
       DB_HOST: ${DB_HOST:-db}
       PG_USER: ${PG_USER:-postgres}
@@ -29,6 +30,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./tmp/oidc-signing-key.pem:/rails/oidc-signing-key.pem:ro
 
 volumes:
   postgres-data:

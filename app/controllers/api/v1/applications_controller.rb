@@ -8,6 +8,11 @@ module Api
       end
 
       def create
+        # Doorkeeper reads blank app scopes as "no allowlist" and falls back to
+        # every configured scope, so an omitted scope must not reach the model.
+        scopes = application_params[:scopes]
+        return render json: { errors: [ "Scopes can't be blank" ] }, status: :unprocessable_content if scopes.blank?
+
         application = Doorkeeper::Application.new(application_params)
         if application.save
           render json: application_json(application).merge(secret: application.plaintext_secret), status: :created

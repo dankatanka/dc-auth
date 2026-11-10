@@ -6,6 +6,8 @@ Rails.application.routes.draw do
     skip_controllers :applications, :authorized_applications
   end
 
+  use_doorkeeper_openid_connect
+
   devise_for :users
 
   root "home#index"

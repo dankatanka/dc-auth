@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require "fileutils"
+require "openssl"
 
 APP_ROOT = File.expand_path("..", __dir__)
 
@@ -14,6 +15,13 @@ FileUtils.chdir APP_ROOT do
 
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
+
+  # Before anything boots Rails: the initializer reads this file. tmp/ is
+  # gitignored and dockerignored, so the key is never committed or shipped.
+  puts "\n== Preparing the OIDC signing key =="
+  key_path = "tmp/oidc-signing-key.pem"
+  File.write(key_path, OpenSSL::PKey::RSA.new(2048).to_pem) unless File.exist?(key_path)
+  File.chmod(0o600, key_path)
 
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")

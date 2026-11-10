@@ -21,9 +21,9 @@ authorized-applications controllers are skipped (docs/decisions.md).
 
 Remaining Phase 0 work:
 
-1. Login, registration, and the consent screen. These are served by Devise's
-   and Doorkeeper's stock views, with the app's own layout. No view files were
-   generated — there is nothing customized to maintain yet, and the
+1. Login, registration, and the consent screen. Login and registration are
+   Devise's stock views with the app's own layout; the consent screen is an
+   app-owned copy of Doorkeeper's, kept only to submit the OIDC `nonce`. The
    authorization-code flow through them is exercised end to end by
    `test/controllers/token_validation_test.rb` (Phase 1).
 
@@ -71,6 +71,15 @@ and parameters in docs/api.md.
 
 The admin app's audit view is not here — it is Phase 3.
 
+## OIDC provider (done)
+
+`doorkeeper-openid_connect`: discovery, JWKS, userinfo, and an RS256 `id_token`
+on any grant carrying the `openid` scope. Access tokens stay opaque and
+introspected, so revocation is unchanged. Claims come from
+`User#introspection_claims`, so there is still one whitelist, and existing
+applications were granted `openid profile email` by migration
+(docs/validation.md, docs/bootstrap.md).
+
 ## Phase 3 — audit log
 
 Every grant, revocation, and role change, written in Phase 1's schema. Plus the
@@ -79,8 +88,7 @@ admin app's audit view. This is the mitigation for having no central policy view
 
 ## Phase 4 — optional
 
-MFA. `doorkeeper-openid_connect` if an external consumer appears. Scopes as a
-per-user permission model if per-app limits become real.
+MFA. Scopes as a per-user permission model if per-app limits become real.
 
 ## Not scheduled
 

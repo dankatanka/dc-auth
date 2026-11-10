@@ -20,6 +20,7 @@ gem "bcrypt"
 # Auth
 gem "devise"
 gem "doorkeeper"
+gem "doorkeeper-openid_connect"
 
 # Use the database-backed adapters for Rails.cache and Active Job
 gem "solid_cache"

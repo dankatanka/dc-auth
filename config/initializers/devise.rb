@@ -313,4 +313,10 @@ Devise.setup do |config|
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
+
+  # `auth.session` is Warden's nested hash, not the Rack session the OIDC
+  # callback reads; `after_set_user` also catches Devise's `sign_in` paths.
+  Warden::Manager.after_set_user except: :fetch do |_user, auth, _opts|
+    auth.env["rack.session"][:auth_time] = Time.current
+  end
 end

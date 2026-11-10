@@ -21,11 +21,11 @@ class UserTest < ActiveSupport::TestCase
     ada = users(:ada)
     app = oauth_applications(:client)
     token = Doorkeeper::AccessToken.create!(
-      application: app, resource_owner_id: ada.id, scopes: "read:profile", expires_in: 15.minutes
+      application: app, resource_owner_id: ada.id, scopes: "openid", expires_in: 15.minutes
     )
     grant = Doorkeeper::AccessGrant.create!(
       application: app, resource_owner_id: ada.id, redirect_uri: app.redirect_uri,
-      scopes: "read:profile", expires_in: 10.minutes
+      scopes: "openid", expires_in: 10.minutes
     )
 
     ada.update!(password: "new-password-123", password_confirmation: "new-password-123")
@@ -38,7 +38,7 @@ class UserTest < ActiveSupport::TestCase
     ada = users(:ada)
     token = Doorkeeper::AccessToken.create!(
       application: oauth_applications(:client), resource_owner_id: ada.id,
-      scopes: "read:profile", expires_in: 15.minutes
+      scopes: "openid", expires_in: 15.minutes
     )
 
     ada.update!(first_name: "Augusta")

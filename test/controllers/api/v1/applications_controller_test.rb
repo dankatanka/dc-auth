@@ -14,7 +14,7 @@ module Api
       end
 
       test "a token without the scope is forbidden" do
-        authorize_with(oauth_applications(:client), "read:profile")
+        authorize_with(oauth_applications(:client), "openid")
 
         get :index
 
@@ -32,7 +32,7 @@ module Api
 
       test "create returns the secret once" do
         post :create, params: { application: {
-          name: "new-app", redirect_uri: "https://new.example.com/callback", scopes: "read:profile"
+          name: "new-app", redirect_uri: "https://new.example.com/callback", scopes: "openid"
         } }
 
         assert_response :created
@@ -51,9 +51,16 @@ module Api
         assert JSON.parse(response.body)["errors"].present?
       end
 
+      test "create rejects blank scopes" do
+        post :create, params: { application: { name: "blank-app", redirect_uri: "https://blank.example.com/cb" } }
+
+        assert_response :unprocessable_content
+        assert JSON.parse(response.body)["errors"].present?
+      end
+
       test "create accepts an http loopback redirect for local development" do
         post :create, params: { application: {
-          name: "local-app", redirect_uri: "http://localhost:3000/oauth/callback", scopes: "read:profile"
+          name: "local-app", redirect_uri: "http://localhost:3000/oauth/callback", scopes: "openid"
         } }
 
         assert_response :created
@@ -61,7 +68,7 @@ module Api
 
       test "create rejects an http redirect that is not loopback" do
         post :create, params: { application: {
-          name: "insecure-app", redirect_uri: "http://insecure.example.com/callback", scopes: "read:profile"
+          name: "insecure-app", redirect_uri: "http://insecure.example.com/callback", scopes: "openid"
         } }
 
         assert_response :unprocessable_content
@@ -70,7 +77,7 @@ module Api
 
       test "destroy removes the application" do
         doomed = Doorkeeper::Application.create!(
-          name: "doomed", redirect_uri: "urn:ietf:wg:oauth:2.0:oob", scopes: "read:profile"
+          name: "doomed", redirect_uri: "urn:ietf:wg:oauth:2.0:oob", scopes: "openid"
         )
 
         delete :destroy, params: { id: doomed.id }

@@ -1,12 +1,12 @@
 # Bootstrap
 
 First-time setup of a **production** instance. Development needs none of this:
-`bin/setup` seeds the `admin` application and two known-password users, and
-`bin/dev` runs it (docs/operations.md).
+`bin/setup` seeds the `admin` and `dashboard` applications and two
+known-password users, and `bin/dev` runs it (docs/operations.md).
 
 Production must never seed. `db/seeds.rb` loads in every environment and creates
-`administrator@example.com` / `password123` alongside the `admin` application —
-and the application's secret is hashed at rest and never printed, so the seeded
+`administrator@example.com` / `password123` alongside those applications. The
+`admin` application's secret is hashed at rest and never printed, so the seeded
 `admin` app is unusable anyway. A production instance is bootstrapped in three
 explicit steps instead: schema, `admin` application, first administrator.
 
@@ -43,7 +43,7 @@ kubectl exec -i deploy/dc-auth -- bin/rails runner - <<'RUBY'
 app = Doorkeeper::Application.create!(
   name: "admin",
   redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
-  scopes: "admin:users admin:apps",
+  scopes: "admin:users admin:apps openid profile email",
   confidential: true,
 )
 puts "uid=#{app.uid}"
@@ -87,10 +87,26 @@ the same code as a one-off Job with the password from a Secret.
 |---|---|
 | `RAILS_ENV=production` | the image sets it, but be explicit |
 | `SECRET_KEY_BASE` | boot fails without it |
-| `APP_HOST` | host in mailer links; boot fails without it |
+| `APP_HOST` | host in mailer links and in the ID-token issuer; boot fails without it |
+| `OIDC_SIGNING_KEY_PATH` | path to the RSA private key that signs ID tokens; boot fails without it |
 | `DB_HOST`, `PG_USER`, `PG_PASSWORD` | the database |
 | `RAILS_MASTER_KEY` | only if you edit credentials (SMTP) |
 | `SOLID_QUEUE_IN_PUMA=1` | or run `bin/jobs` as its own Deployment. Without one or the other, jobs are enqueued and never performed |
+
+The ID token signing key is the one secret not in the table, because it has to
+be generated once and never regenerated:
+
+```
+openssl genrsa 2048 > signing-key.pem
+kubectl create secret generic dc-auth-oidc-key --from-file=signing-key.pem
+```
+
+Mount it and point `OIDC_SIGNING_KEY_PATH` at the mounted file. There is no
+rotation: a new key means every relying party has to refetch the JWKS, and one
+that cached the old key rejects ID tokens until it does (docs/validation.md).
+No key is committed: `bin/setup` generates a gitignored
+`tmp/oidc-signing-key.pem` for development and test, and a production boot
+without this variable fails rather than falling back to it.
 
 SMTP is not configured (`config.action_mailer.smtp_settings` is commented out),
 so until it is, users created through the API can never confirm. Wire it before
@@ -113,7 +129,7 @@ token=$(curl -s -X POST https://auth.example.com/oauth/token \
 
 curl -s -X POST https://auth.example.com/api/v1/applications \
   -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
-  -d '{"application":{"name":"dashboard","redirect_uri":"https://dashboard.example.com/oauth/callback","scopes":"read:profile"}}'
+  -d '{"application":{"name":"dashboard","redirect_uri":"https://dashboard.example.com/oauth/callback","scopes":"openid profile email"}}'
 ```
 
 The response carries the secret, and only that response does. Redirect URIs must

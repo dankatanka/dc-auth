@@ -97,6 +97,10 @@ jobs:
       - name: Install JS dependencies
         run: yarn install --frozen-lockfile
 
+      # tmp/ is gitignored, so a fresh checkout has no key and Rails cannot boot.
+      - name: Generate the OIDC signing key
+        run: openssl genrsa 2048 > tmp/oidc-signing-key.pem
+
       - name: Run tests
         env:
           RAILS_ENV: test

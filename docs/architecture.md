@@ -23,12 +23,15 @@ All clients are confidential backends. There is no SPA, no public client, no
    (login, signup,     │                                  │
     consent)           │  Devise      users, sessions     │
                        │  Doorkeeper  /oauth/*            │
+                       │  OIDC        discovery, id_token │
                        │  Admin API   /api/v1/*           │
                        └───┬──────────────────────┬───────┘
                            │                      │
    POST /oauth/introspect  │                      │  /api/v1/*
    POST /oauth/token       │                      │
    POST /oauth/revoke      │                      │
+   GET  /.well-known/…     │                      │
+   GET  /oauth/userinfo    │                      │
               ┌────────────┴──────────┐  ┌────────┴─────────┐
               │  client apps          │  │  admin app       │
               │  (backends acting for │  │  (management UI, │
@@ -45,7 +48,10 @@ and presentation all live in the client apps.
 
 The load-bearing decision is that validation is a network hop, every time. See
 docs/validation.md for the mechanism and docs/decisions.md for the rejected
-alternatives (JWT, JWKS, key rotation, cache TTLs).
+alternatives (JWT access tokens, JWKS, key rotation, cache TTLs). The OIDC
+provider rides on top as an identity layer only: it signs an `id_token` for
+relying parties, and authorization still asks this service
+(docs/validation.md).
 
 Two consequences show up everywhere else in the design:
 

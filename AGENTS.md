@@ -35,6 +35,7 @@ behavior, update the doc in the same change. Full rationale:
 | Which versions, why this gem and not that one | `docs/stack.md` |
 | What is built, what is next | `docs/roadmap.md` |
 | Why not JWT / Pundit / a policy DSL | `docs/decisions.md` |
+| How a client signs a user in over OIDC | `docs/validation.md`, `docs/api.md` |
 | How to write comments, what stays out of them | `docs/coding-style.md` |
 
 Before touching `config/database.yml`, `config/cache.yml`, `bin/dev`, or the

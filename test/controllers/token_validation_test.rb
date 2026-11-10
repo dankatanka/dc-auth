@@ -12,7 +12,7 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
       client_id: @client.uid,
       redirect_uri: @client.redirect_uri,
       response_type: "code",
-      scope: "read:profile",
+      scope: "openid",
       state: "proof-state",
       code_challenge: challenge,
       code_challenge_method: "S256"
@@ -79,7 +79,7 @@ class TokenValidationTest < ActionDispatch::IntegrationTest
       client_id: @client.uid,
       redirect_uri: @client.redirect_uri,
       response_type: "code",
-      scope: "read:profile",
+      scope: "openid",
       state: "proof-state"
     }
     assert_redirected_to "/users/sign_in"

@@ -62,10 +62,10 @@ Minitest, no framework.
   the cases. Minitest does not care about method visibility.
 - **Everything lives under `test/controllers`.** There is no `test/integration`.
   Endpoint coverage is `ActionController::TestCase`, one file per controller.
-  `token_validation_test.rb` is the exception in class, not location: it proves
-  the whole OAuth chain, so it crosses routes and stays an
-  `ActionDispatch::IntegrationTest` — and it earns that because Phase 1 *is* "a
-  real app validates a real token end to end".
+  Two files are the exception in class, not location, because each proves a
+  whole chain rather than one controller: `token_validation_test.rb` for OAuth
+  (Phase 1 *is* "a real app validates a real token end to end") and
+  `openid_connect_test.rb` for OIDC discovery, `id_token`, and userinfo.
 
 ## The checklist, and what it is for
 
