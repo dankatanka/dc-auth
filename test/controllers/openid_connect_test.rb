@@ -134,6 +134,25 @@ class OpenidConnectTest < ActionDispatch::IntegrationTest
     assert_redirected_to "/users/sign_in"
   end
 
+  test "prompt=login on a signed-out request is satisfied by one sign-in" do
+    @user.update!(password: "correct horse")
+
+    get "/oauth/authorize", params: {
+      client_id: @client.uid,
+      redirect_uri: @client.redirect_uri,
+      response_type: "code",
+      scope: "openid",
+      prompt: "login"
+    }
+    assert_redirected_to "/users/sign_in"
+
+    post "/users/sign_in", params: { user: { email: @user.email, password: "correct horse" } }
+    refute_includes response.location.to_s, "prompt=login"
+
+    follow_redirect!
+    assert_response :success
+  end
+
   test "prompt=select_account answers account_selection_required, not a 500" do
     sign_in @user
 

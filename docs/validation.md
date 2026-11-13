@@ -186,8 +186,10 @@ default is either a `500` or a security hole:
   hidden field to both forms. The test submits the rendered form rather than
   re-POSTing the request, because the latter hides exactly this bug.
 - **`prompt=login`** signs the user out and sends them to the sign-in form, with
-  the consent screen stored as the return-to. Without the callback the gem
-  raises instead.
+  the consent screen stored as the return-to. A signed-out visitor gets the same
+  return-to with `prompt=login` stripped: left in, the gem would sign the user
+  straight back out after they authenticate and demand a second sign-in. Without
+  the callback the gem raises instead.
 - **`prompt=select_account`** answers `account_selection_required`. There is no
   account picker — one session is one user — and the gem's default raises a
   configuration error, which is a `500` for a parameter an RP is entitled to

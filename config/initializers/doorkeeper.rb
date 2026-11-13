@@ -21,10 +21,17 @@ Doorkeeper.configure do
   # See: https://guides.rubyonrails.org/active_record_multiple_databases.html#activating-automatic-role-switching
 
   # This block will be called to check whether the resource owner is authenticated or not.
-  # warden, not a bare redirect: the failure app is what stores the consent
-  # screen as the return-to, so signing in comes back to it instead of home.
+  # Not warden.authenticate!: its failure app stores the raw URL, and a
+  # prompt=login left in the return-to signs the user straight back out after
+  # they authenticate. The gem's own helper strips exactly that value.
+  # ponytail: gem-private helper; the prompt=login round-trip test catches a move.
   resource_owner_authenticator do
-    current_user || warden.authenticate!(scope: :user)
+    if current_user
+      current_user
+    else
+      store_location_for :user, return_without_oidc_prompt_param("login") if request.get?
+      redirect_to new_user_session_url
+    end
   end
 
   # If you didn't skip applications controller from Doorkeeper routes in your application routes.rb
